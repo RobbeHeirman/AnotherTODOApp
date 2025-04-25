@@ -10,9 +10,9 @@ type JSONSerializable interface {
 	json.Marshaler
 	json.Unmarshaler
 }
-type RestPostFunc[T JSONSerializable, U JSONSerializable] func(*T, http.ResponseWriter, *http.Request) U
+type RestPostFunc[T any, U any] func(*T, http.ResponseWriter, *http.Request) *U
 
-func RestPostHandler[T JSONSerializable, U JSONSerializable](restFunc RestPostFunc[T, U]) http.HandlerFunc {
+func RestPostHandler[T any, U any](restFunc RestPostFunc[T, U]) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		if request.Method != http.MethodPost {
 			http.Error(writer, "Invalid HTTP method", http.StatusMethodNotAllowed)
