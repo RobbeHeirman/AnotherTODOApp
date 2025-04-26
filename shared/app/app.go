@@ -1,7 +1,8 @@
 package app
 
-import "shared/routing"
+import "github.com/robbeheirman/todo/shared/routing"
 
 type App interface {
 	GetRouter() *routing.Router
+	GetName() string
 }

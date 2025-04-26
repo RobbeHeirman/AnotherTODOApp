@@ -1,7 +1,19 @@
 package main
 
-func main() {
-	//TIP <p>Press <shortcut actionId="ShowIntentionActions"/> when your caret is at the underlined text
-	// to see how GoLand suggests fixing the warning.</p><p>Alternatively, if available, click the lightbulb to view possible fixes.</p>
+import (
+	"github.com/robbeheirman/todo/shared/routing"
+	"log"
+	"net/http"
+)
 
+func main() {
+	mainRouter := routing.NewRouter()
+	mainRouter.UseMiddleware(routing.RedirectSlashes)
+	for _, app := range GetRegisteredApps() {
+		mainRouter.Handle("/"+app.GetName(), app.GetRouter())
+	}
+
+	if err := http.ListenAndServe(":8080", mainRouter); err != nil {
+		log.Fatal(err)
+	}
 }

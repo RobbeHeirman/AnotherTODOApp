@@ -24,7 +24,7 @@ func postFunc(data *TestData, w http.ResponseWriter, r *http.Request) *TestResul
 }
 
 func TestPostWrapper(t *testing.T) {
-	handler := RestPostHandler(postFunc)
+	handler := RestPostHandleFunc(postFunc)
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("{\"dummy\": \"test\"}"))
 	handler.ServeHTTP(w, r)
