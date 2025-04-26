@@ -1,8 +1,10 @@
 package app
 
-import "github.com/robbeheirman/todo/shared/routing"
+import (
+	"net/http"
+)
 
 type App interface {
-	GetRouter() *routing.Router
+	GetRouter() http.Handler
 	GetName() string
 }
