@@ -9,7 +9,19 @@ import (
 func main() {
 	mainRouter := routing.NewRouter()
 	mainRouter.UseMiddleware(routing.RedirectSlashes)
-	for _, app := range GetRegisteredApps() {
+	apps, err := GetRegisteredApps()
+	if err != nil {
+		log.Fatal("Fatal Error: ", err)
+	}
+
+	for _, app := range apps {
+		err := app.Install()
+		if err != nil {
+			log.Println("App Did not install:", err)
+		}
+	}
+
+	for _, app := range apps {
 		mainRouter.Handle("/"+app.GetName(), app.GetRouter())
 	}
 

@@ -17,7 +17,9 @@ func (e *RestError) Error() string {
 	return fmt.Sprintf("%d: %s", e.Code, e.Message)
 }
 
-func RestPostHandleFunc[T any, U any](restFunc func(*T) (U, error)) http.HandlerFunc {
+type RestFunc[T any, U any] func(*T) (U, error)
+
+func RestPostHandleFunc[T any, U any](restFunc RestFunc[T, U]) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		if request.Method != http.MethodPost {
 			http.Error(writer, "Invalid HTTP method", http.StatusMethodNotAllowed)

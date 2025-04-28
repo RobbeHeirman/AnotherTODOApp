@@ -1,5 +1,8 @@
 package persistence
 
+import "github.com/robbeheirman/todo/auth/models"
+
 type Repository interface {
-	CreateUser(user *User) error
+	Install() error
+	CreateUser(user *models.User) error
 }

@@ -7,4 +7,5 @@ import (
 type App interface {
 	GetRouter() http.Handler
 	GetName() string
+	Install() error
 }

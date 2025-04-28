@@ -1,17 +1,13 @@
-package api
+package logic
 
 import (
+	"github.com/robbeheirman/todo/auth/models"
 	"github.com/robbeheirman/todo/auth/persistence"
 	"github.com/robbeheirman/todo/shared/routing"
 	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net/http"
 )
-
-type UserSchema struct {
-	Name     string `json:"user"`
-	Password string `json:"password"`
-}
 
 type Api struct {
 	repository persistence.Repository
@@ -21,7 +17,7 @@ func NewApi(repository persistence.Repository) *Api {
 	return &Api{repository}
 }
 
-func (api *Api) Register(user *UserSchema) (any, error) {
+func (api *Api) Register(user *models.User) (any, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		log.Println("Error hashing password", err)
@@ -31,9 +27,9 @@ func (api *Api) Register(user *UserSchema) (any, error) {
 		}
 	}
 
-	userModel := persistence.User{
-		user.Name,
-		string(hashedPassword),
+	userModel := models.User{
+		Email:    user.Email,
+		Password: string(hashedPassword),
 	}
 	// TODO: Make specific saving errors
 	err = api.repository.CreateUser(&userModel)
