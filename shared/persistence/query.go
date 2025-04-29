@@ -1,34 +1,28 @@
 package persistence
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 	"strings"
 )
 
-func CreateInsertQuery[T any](tableName string, object ...T) (string, error) {
-	if len(object) == 0 {
-		return "", errors.New("need atleast one object")
-	}
-	fields := reflect.TypeOf(object[0])
-	fieldCount := fields.NumField()
+func CreateInsertQuery(tableName string, reflectedType reflect.Type, quantity int) string {
+
+	fieldCount := reflectedType.NumField()
 	fieldNames := make([]string, fieldCount)
 	for i := 0; i < fieldCount; i++ {
-		field := fields.Field(i)
+		field := reflectedType.Field(i)
 		tag, ok := field.Tag.Lookup("db")
 		if !ok {
 			tag = strings.ToLower(field.Name)
 		}
 		fieldNames[i] = tag
-
 	}
-	objectCount := len(object)
-	placeholders := make([]string, objectCount)
-	for i := 0; i < objectCount; i++ {
+	placeholders := make([]string, quantity)
+	for i := 0; i < quantity; i++ {
 		placeholders[i] = generatePlaceholderString(i*fieldCount, fieldCount)
 	}
-	return fmt.Sprintf("INSERT INTO %s (%s) VALUES %s", tableName, strings.Join(fieldNames, ", "), strings.Join(placeholders, ",")), nil
+	return fmt.Sprintf("INSERT INTO %s (%s) VALUES %s", tableName, strings.Join(fieldNames, ", "), strings.Join(placeholders, ","))
 }
 
 func generatePlaceholderString(lastNum int, placeholders int) string {

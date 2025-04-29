@@ -2,6 +2,7 @@ package persistence
 
 import (
 	testing2 "github.com/robbeheirman/todo/shared/testing"
+	"reflect"
 	"testing"
 )
 
@@ -21,19 +22,13 @@ func TestQueryInsert(t *testing.T) {
 		JsonTaggedField:   "json_tagged_field",
 		DoubleTaggedField: 2,
 	}
+	typeOf := reflect.TypeOf(obj)
+
 	expect := "INSERT INTO test (test, testnum, tagged_field, jsontaggedfield, double_tagged_field) VALUES ($1, $2, $3, $4, $5)"
-	query, _ := CreateInsertQuery("test", obj)
+	query := CreateInsertQuery("test", typeOf, 1)
 	testing2.AssertEqual(t, expect, query)
 
-	extraObj := TestObj{
-		Test:              "tes2",
-		TestNum:           4,
-		TaggedField:       "tagged_field_extra",
-		JsonTaggedField:   "json_tagged_field_extra",
-		DoubleTaggedField: 1000,
-	}
-
 	expect = "INSERT INTO test (test, testnum, tagged_field, jsontaggedfield, double_tagged_field) VALUES ($1, $2, $3, $4, $5),($6, $7, $8, $9, $10)"
-	query, _ = CreateInsertQuery("test", obj, extraObj)
+	query = CreateInsertQuery("test", typeOf, 2)
 	testing2.AssertEqual(t, expect, query)
 }

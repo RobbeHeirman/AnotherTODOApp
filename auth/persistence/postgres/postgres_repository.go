@@ -3,10 +3,20 @@ package postgres
 import (
 	"context"
 	_ "embed"
+	"errors"
 	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/robbeheirman/todo/auth/models"
+	"github.com/robbeheirman/todo/shared/persistence/postgres"
+	"log/slog"
 )
+
+var logger = slog.Default()
+
+const UserTable = "users"
+
+//go:embed sql/user_scheme.sql
+var schemaSQL string
 
 type Repository struct {
 	host     string
@@ -27,15 +37,23 @@ func NewRepository(host string, port int, database string, username string, pass
 }
 
 func (repo *Repository) CreateUser(user *models.User) error {
+	connection, err := repo.getConnection()
+	if err != nil {
+		return err
+	}
+	qty, err := postgres.InsertObject(connection, UserTable, user)
+	if err != nil {
+		return err
+	}
+	if qty != 1 {
+		return errors.New("insert failed")
+	}
+	logger.Info("Inserted user")
 	return nil
 }
 
-//go:embed sql/user_scheme.sql
-var schemaSQL string
-
 func (repo *Repository) Install() error {
-	connStr := repo.getConnectionString()
-	conn, err := pgx.Connect(context.Background(), connStr)
+	conn, err := repo.getConnection()
 	if err != nil {
 		return err
 	}
@@ -50,4 +68,10 @@ func (repo *Repository) Install() error {
 
 func (repo *Repository) getConnectionString() string {
 	return fmt.Sprintf("postgres://%s:%s@%s:%d/%s", repo.username, repo.password, repo.host, repo.port, repo.database)
+}
+
+func (repo *Repository) getConnection() (*pgx.Conn, error) {
+	connStr := repo.getConnectionString()
+	return pgx.Connect(context.Background(), connStr)
+
 }
