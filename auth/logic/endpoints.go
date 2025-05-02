@@ -6,6 +6,7 @@ import (
 	"github.com/robbeheirman/todo/shared/routing"
 	"golang.org/x/crypto/bcrypt"
 	"log"
+	"log/slog"
 	"net/http"
 )
 
@@ -34,6 +35,7 @@ func (api *Api) Register(user *models.User) (any, error) {
 	// TODO: Make specific saving errors
 	err = api.repository.CreateUser(&userModel)
 	if err != nil {
+		slog.Error("Error creating user", err)
 		return nil, &routing.RestError{
 			Code:    http.StatusConflict,
 			Message: "User already exists",

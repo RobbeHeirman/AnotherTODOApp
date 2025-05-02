@@ -41,6 +41,7 @@ func (repo *Repository) CreateUser(user *models.User) error {
 	if err != nil {
 		return err
 	}
+	defer connection.Close(context.Background())
 	qty, err := postgres.InsertObject(connection, UserTable, user)
 	if err != nil {
 		return err
@@ -63,6 +64,7 @@ func (repo *Repository) Install() error {
 	if err != nil {
 		return fmt.Errorf("failed to execute schema: %w", err)
 	}
+	logger.Info("Schema created")
 	return nil
 }
 
@@ -72,6 +74,10 @@ func (repo *Repository) getConnectionString() string {
 
 func (repo *Repository) getConnection() (*pgx.Conn, error) {
 	connStr := repo.getConnectionString()
-	return pgx.Connect(context.Background(), connStr)
+	connect, err := pgx.Connect(context.Background(), connStr)
+	if err != nil {
+		logger.Error("Could not connect to db", err)
+	}
+	return connect, err
 
 }
