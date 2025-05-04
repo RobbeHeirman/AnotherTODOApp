@@ -8,18 +8,22 @@ import (
 )
 
 type App struct {
-	repo persistence.Repository
+	repo        persistence.Repository
+	signKey     string
+	validateKey string
 }
 
-func NewApp(repo persistence.Repository) *App {
+func NewApp(repo persistence.Repository, signKey string, validationKey string) *App {
 	return &App{
-		repo: repo,
+		repo:        repo,
+		signKey:     signKey,
+		validateKey: validationKey,
 	}
 }
 
 func (app *App) GetRouter() http.Handler {
 	router := routing.NewRouter()
-	newApi := logic.NewApi(app.repo)
+	newApi := logic.NewApi(app.repo, app.signKey)
 	router.HandleFunc("/register", routing.RestPostHandleFunc(newApi.Register))
 	return router
 }

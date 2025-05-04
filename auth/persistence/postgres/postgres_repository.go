@@ -36,21 +36,21 @@ func NewRepository(host string, port int, database string, username string, pass
 	}
 }
 
-func (repo *Repository) CreateUser(user *models.User) error {
+func (repo *Repository) CreateUser(user *models.User) (*models.UserId, error) {
 	connection, err := repo.getConnection()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer connection.Close(context.Background())
-	qty, err := postgres.InsertObject(connection, UserTable, user)
+	users, err := postgres.InsertAndGetObjects(connection, UserTable, rowToUser, user)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if qty != 1 {
-		return errors.New("insert failed")
+	if len(users) != 1 {
+		return nil, errors.New("insert failed")
 	}
 	logger.Info("Inserted user")
-	return nil
+	return users[0], nil
 }
 
 func (repo *Repository) Install() error {
@@ -79,5 +79,16 @@ func (repo *Repository) getConnection() (*pgx.Conn, error) {
 		logger.Error("Could not connect to db", err)
 	}
 	return connect, err
+}
 
+func rowToUser(row pgx.CollectableRow) (*models.UserId, error) {
+	var id int
+	err := row.Scan(&id)
+	if err != nil {
+		logger.Error("Could not scan row", err)
+		return nil, err
+	}
+	return &models.UserId{
+		Id: id,
+	}, nil
 }

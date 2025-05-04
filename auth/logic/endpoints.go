@@ -8,14 +8,16 @@ import (
 	"log"
 	"log/slog"
 	"net/http"
+	"time"
 )
 
 type Api struct {
 	repository persistence.Repository
+	key        string
 }
 
-func NewApi(repository persistence.Repository) *Api {
-	return &Api{repository}
+func NewApi(repository persistence.Repository, key string) *Api {
+	return &Api{repository, key}
 }
 
 func (api *Api) Register(user *models.User) (any, error) {
@@ -33,7 +35,7 @@ func (api *Api) Register(user *models.User) (any, error) {
 		Password: string(hashedPassword),
 	}
 	// TODO: Make specific saving errors
-	err = api.repository.CreateUser(&userModel)
+	userId, err := api.repository.CreateUser(&userModel)
 	if err != nil {
 		slog.Error("Error creating user", err)
 		return nil, &routing.RestError{
@@ -41,5 +43,16 @@ func (api *Api) Register(user *models.User) (any, error) {
 			Message: "User already exists",
 		}
 	}
-	return struct{}{}, nil
+	jwt, err := CreateJwt(api.key, userId.Id, time.Duration(72)*time.Hour)
+	if err != nil {
+		slog.Error("Error creating JWT", err)
+		return nil, &routing.RestError{
+			Code: http.StatusInternalServerError,
+		}
+	}
+	return struct{ Jwt string }{jwt}, nil
+}
+
+func (api *Api) Login(user *models.User) (any, error) {
+
 }

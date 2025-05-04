@@ -2,15 +2,14 @@ package postgres
 
 import (
 	"context"
-	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/robbeheirman/todo/shared/persistence"
 	"reflect"
 )
 
-func InsertObject[T any](conn *pgx.Conn, table string, objects ...*T) (int, error) {
+func InsertAndGetObjects[T any, U any](conn *pgx.Conn, table string, rowTransform pgx.RowToFunc[U], objects ...*T) ([]U, error) {
 	if len(objects) == 0 {
-		return 0, nil
+		return []U{}, nil
 	}
 	reflectedType := reflect.TypeOf(*objects[0])
 	queryTemplate := persistence.CreateInsertQuery(table, reflectedType, len(objects))
@@ -24,10 +23,10 @@ func InsertObject[T any](conn *pgx.Conn, table string, objects ...*T) (int, erro
 		}
 	}
 
-	fmt.Printf(queryTemplate)
-	result, err := conn.Exec(context.Background(), queryTemplate, fields...)
+	result, err := conn.Query(context.Background(), queryTemplate, fields...)
+	defer result.Close()
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
-	return int(result.RowsAffected()), err
+	return pgx.CollectRows(result, rowTransform)
 }

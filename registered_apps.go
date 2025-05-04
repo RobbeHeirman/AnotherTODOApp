@@ -15,6 +15,9 @@ func GetRegisteredApps() ([]app.App, error) {
 	DbHost := os.Getenv("DB_HOST")
 	DbDatabase := os.Getenv("DB_DATABASE")
 
+	signKey := os.Getenv("SIGNING_KEY")
+	validationKey := os.Getenv("VALIDATION_KEY")
+
 	DbPort, err := strconv.Atoi(os.Getenv("DB_PORT"))
 	if err != nil {
 		log.Fatalln(err)
@@ -22,6 +25,6 @@ func GetRegisteredApps() ([]app.App, error) {
 	}
 
 	return []app.App{
-		auth.NewApp(postgres.NewRepository(DbHost, DbPort, DbDatabase, DbUsername, DbPassword)),
+		auth.NewApp(postgres.NewRepository(DbHost, DbPort, DbDatabase, DbUsername, DbPassword), signKey, validationKey),
 	}, nil
 }
