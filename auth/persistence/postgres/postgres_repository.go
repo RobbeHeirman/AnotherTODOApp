@@ -41,7 +41,12 @@ func (repo *Repository) CreateUser(user *models.User) (*models.UserId, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer connection.Close(context.Background())
+	defer func(connection *pgx.Conn, ctx context.Context) {
+		err := connection.Close(ctx)
+		if err != nil {
+			logger.Error(err.Error())
+		}
+	}(connection, context.Background())
 	users, err := postgres.InsertAndGetObjects(connection, UserTable, rowToUser, user)
 	if err != nil {
 		return nil, err
@@ -55,10 +60,16 @@ func (repo *Repository) CreateUser(user *models.User) (*models.UserId, error) {
 
 func (repo *Repository) Install() error {
 	conn, err := repo.getConnection()
+	defer func(conn *pgx.Conn, ctx context.Context) {
+		err := conn.Close(ctx)
+		if err != nil {
+			logger.Error(err.Error())
+		}
+	}(conn, context.Background())
 	if err != nil {
+		logger.Error("Error db conn", err)
 		return err
 	}
-	defer conn.Close(context.Background())
 
 	_, err = conn.Exec(context.Background(), schemaSQL)
 	if err != nil {
@@ -84,6 +95,7 @@ func (repo *Repository) getConnection() (*pgx.Conn, error) {
 func rowToUser(row pgx.CollectableRow) (*models.UserId, error) {
 	var id int
 	err := row.Scan(&id)
+	fmt.Printf("Called Row to User and id %v\n", id)
 	if err != nil {
 		logger.Error("Could not scan row", err)
 		return nil, err

@@ -25,7 +25,7 @@ func main() {
 		mainRouter.Handle("/"+app.GetName(), app.GetRouter())
 	}
 
-	if err := http.ListenAndServe(":8080", mainRouter); err != nil {
+	if err := http.ListenAndServe(":8081", mainRouter); err != nil {
 		log.Fatal(err)
 	}
 }

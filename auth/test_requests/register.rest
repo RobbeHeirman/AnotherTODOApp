@@ -1,8 +1,8 @@
 ### Post request
-POST localhost:8080/auth/register
+POST localhost:8081/auth/register
 Content-Type: application/json
 
 {
-  "email": "robbeheirman@msn.com",
+  "email": "robbeheirman2@msn.com",
   "password": "!Basics1993!"
 }

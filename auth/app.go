@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"crypto/rsa"
 	"github.com/robbeheirman/todo/auth/logic"
 	"github.com/robbeheirman/todo/auth/persistence"
 	"github.com/robbeheirman/todo/shared/routing"
@@ -9,11 +10,11 @@ import (
 
 type App struct {
 	repo        persistence.Repository
-	signKey     string
-	validateKey string
+	signKey     *rsa.PrivateKey
+	validateKey *rsa.PublicKey
 }
 
-func NewApp(repo persistence.Repository, signKey string, validationKey string) *App {
+func NewApp(repo persistence.Repository, signKey *rsa.PrivateKey, validationKey *rsa.PublicKey) *App {
 	return &App{
 		repo:        repo,
 		signKey:     signKey,
@@ -23,7 +24,7 @@ func NewApp(repo persistence.Repository, signKey string, validationKey string) *
 
 func (app *App) GetRouter() http.Handler {
 	router := routing.NewRouter()
-	newApi := logic.NewApi(app.repo, app.signKey)
+	newApi := logic.NewApi(app.repo, app.signKey, app.validateKey)
 	router.HandleFunc("/register", routing.RestPostHandleFunc(newApi.Register))
 	return router
 }

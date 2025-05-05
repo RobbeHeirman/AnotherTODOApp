@@ -7,7 +7,6 @@ import (
 )
 
 func CreateInsertQuery(tableName string, reflectedType reflect.Type, quantity int) string {
-
 	fieldCount := reflectedType.NumField()
 	fieldNames := make([]string, fieldCount)
 	for i := 0; i < fieldCount; i++ {
@@ -22,7 +21,7 @@ func CreateInsertQuery(tableName string, reflectedType reflect.Type, quantity in
 	for i := 0; i < quantity; i++ {
 		placeholders[i] = generatePlaceholderString(i*fieldCount, fieldCount)
 	}
-	return fmt.Sprintf("INSERT INTO %s (%s) VALUES %s", tableName, strings.Join(fieldNames, ", "), strings.Join(placeholders, ","))
+	return fmt.Sprintf("INSERT INTO %s (%s) VALUES %s RETURNING id", tableName, strings.Join(fieldNames, ", "), strings.Join(placeholders, ","))
 }
 
 func generatePlaceholderString(lastNum int, placeholders int) string {

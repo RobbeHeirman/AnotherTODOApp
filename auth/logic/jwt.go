@@ -1,11 +1,12 @@
 package logic
 
 import (
+	"crypto/rsa"
 	"github.com/golang-jwt/jwt/v5"
 	"time"
 )
 
-func CreateJwt(secretKey string, userId int, expireTime time.Duration) (string, error) {
+func CreateJwt(secretKey *rsa.PrivateKey, userId int, expireTime time.Duration) (string, error) {
 	claims := jwt.MapClaims{
 		"id":  userId,
 		"exp": time.Now().Add(expireTime).Unix(),
