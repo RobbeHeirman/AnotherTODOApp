@@ -55,10 +55,32 @@ func (api *Api) Register(user *models.User) (any, error) {
 			Code: http.StatusInternalServerError,
 		}
 	}
-	return struct{ jwt string }{jwt}, nil
+	return models.UserLoggedIn{
+		AccessToken: jwt,
+	}, nil
+
 }
 
-//func (api *Api) Login(user *models.User) (any, error) {
-//	return nil, nil
-//
-//}
+func (api *Api) Login(user *models.User) (any, error) {
+	dbUser, err := api.repository.GetUserByEmail(user)
+	if err != nil {
+		slog.Warn("Error getting user by email", err)
+		return nil, &routing.RestError{
+			Code:    http.StatusUnauthorized,
+			Message: "Invalid email or password",
+		}
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(user.Password))
+	if err != nil {
+		return nil, &routing.RestError{
+			Code:    http.StatusUnauthorized,
+			Message: "Invalid email or password",
+		}
+	}
+
+	jwt, err := CreateJwt(api.privateKey, dbUser.Id, time.Duration(72)*time.Hour)
+	return models.UserLoggedIn{
+		AccessToken: jwt,
+	}, nil
+}

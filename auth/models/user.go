@@ -8,3 +8,12 @@ type User struct {
 type UserId struct {
 	Id int
 }
+
+type UserLoggedIn struct {
+	AccessToken string `json:"accessToken"`
+}
+
+type UserLogsInDb struct {
+	Id       int    `db:"id"`
+	Password string `db:"password"`
+}

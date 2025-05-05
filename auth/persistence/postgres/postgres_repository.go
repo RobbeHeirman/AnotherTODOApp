@@ -18,6 +18,9 @@ const UserTable = "users"
 //go:embed sql/user_scheme.sql
 var schemaSQL string
 
+//go:embed sql/select_password.sql
+var selectPassword string
+
 type Repository struct {
 	host     string
 	port     int
@@ -56,6 +59,30 @@ func (repo *Repository) CreateUser(user *models.User) (*models.UserId, error) {
 	}
 	logger.Info("Inserted user")
 	return users[0], nil
+}
+
+func (repo *Repository) GetUserByEmail(user *models.User) (models.UserLogsInDb, error) {
+	connection, err := repo.getConnection()
+	defer connection.Close(context.Background())
+	if err != nil {
+		return models.UserLogsInDb{}, err
+	}
+
+	rows, err := connection.Query(context.Background(), selectPassword, user.Email)
+	defer rows.Close()
+	if rows == nil || !rows.Next() {
+		return models.UserLogsInDb{}, errors.New("User not found")
+	}
+	var id int
+	var password string
+	err = rows.Scan(&id, &password)
+	if err != nil {
+		return models.UserLogsInDb{}, err
+	}
+	return models.UserLogsInDb{
+		Id:       id,
+		Password: password,
+	}, nil
 }
 
 func (repo *Repository) Install() error {
